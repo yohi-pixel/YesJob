@@ -8,22 +8,6 @@
     <link rel="stylesheet" href="assets/ai-agent/styles/widget.css" />
   </head>
   <body>
-    <div id="inviteOverlay" class="overlay" aria-hidden="false">
-      <div class="overlay-card">
-        <h1>访问验证</h1>
-        <p>输入邀请码后继续访问岗位导航。</p>
-        <div class="invite-qr-hint" aria-label="邀请码获取提示">
-          <p class="invite-qr-title">华工校友扫码加入社群获取邀请码</p>
-          <img src="assets/社群二维码.png" alt="华工校友社群二维码" class="invite-qr-image" loading="lazy" />
-        </div>
-        <form id="inviteForm" class="invite-form">
-          <input id="inviteInput" type="password" placeholder="请输入邀请码" autocomplete="off" required />
-          <button type="submit">进入</button>
-        </form>
-        <p id="inviteError" class="hint error"></p>
-      </div>
-    </div>
-
     <div class="bg-gradient"></div>
 
     <main class="page">
@@ -178,7 +162,6 @@
       </article>
     </template>
 
-    <script src="config/invite-codes.js"></script>
     <script type="module" src="assets/app.js"></script>
     <script type="module" src="assets/ai-agent/components/widget.js"></script>
   </body>

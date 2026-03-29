@@ -39,10 +39,6 @@ const CITY_ALIAS_MAP = {
 };
 
 const els = {
-  overlay: document.getElementById("inviteOverlay"),
-  inviteForm: document.getElementById("inviteForm"),
-  inviteInput: document.getElementById("inviteInput"),
-  inviteError: document.getElementById("inviteError"),
   loadStateText: document.getElementById("loadStateText"),
   updatedAtText: document.getElementById("updatedAtText"),
   resultCountText: document.getElementById("resultCountText"),
@@ -75,13 +71,6 @@ const els = {
   cardTpl: document.getElementById("jobCardTpl"),
   overviewEntry: document.getElementById("overviewEntry"),
 };
-
-// Guard against native form submission appending a trailing "?" when JS logic fails later.
-if (els.inviteForm) {
-  els.inviteForm.addEventListener("submit", (event) => {
-    event.preventDefault();
-  });
-}
 
 function cleanupEmptyQuerySuffix() {
   if (!window.location.search && window.location.href.endsWith("?")) {
@@ -333,34 +322,6 @@ function openCalendarModal(dateKey) {
 function closeCalendarModal() {
   els.calendarModal.classList.add("is-hidden");
   els.calendarModal.setAttribute("aria-hidden", "true");
-}
-
-function getInviteCodes() {
-  const codes = Array.isArray(window.JOB_NAV_INVITE_CODES) ? window.JOB_NAV_INVITE_CODES : [];
-  return codes.map((code) => String(code).trim()).filter(Boolean);
-}
-
-function setupInviteGate(onPass) {
-  const codes = getInviteCodes();
-  if (!codes.length) {
-    els.overlay.classList.add("is-hidden");
-    els.overlay.setAttribute("aria-hidden", "true");
-    onPass();
-    return;
-  }
-
-  els.inviteForm.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const value = els.inviteInput.value.trim();
-    if (codes.includes(value)) {
-      els.inviteError.textContent = "";
-      els.overlay.classList.add("is-hidden");
-      els.overlay.setAttribute("aria-hidden", "true");
-      onPass();
-      return;
-    }
-    els.inviteError.textContent = "邀请码错误，请重试。";
-  });
 }
 
 async function tryFetchJson(url) {
@@ -1120,9 +1081,7 @@ async function initDataFlow() {
 function start() {
   cleanupEmptyQuerySuffix();
   bindEvents();
-  setupInviteGate(async () => {
-    await initDataFlow();
-  });
+  initDataFlow();
 }
 
 start();
