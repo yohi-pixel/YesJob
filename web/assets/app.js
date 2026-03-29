@@ -16,10 +16,17 @@ const state = {
   },
   filters: {
     company: [],
+    companyExclude: [],
     project: [],
+    projectExclude: [],
     category: [],
+    categoryExclude: [],
     city: [],
+    cityExclude: [],
     query: "",
+    excludeQuery: "",
+    searchFields: ["title", "responsibilities", "requirements", "bonusPoints"],
+    searchLogic: "or",
     sortBy: "publish_time",
   },
 };
@@ -55,6 +62,8 @@ const els = {
   calendarModalTitle: document.getElementById("calendarModalTitle"),
   calendarModalBody: document.getElementById("calendarModalBody"),
   searchInput: document.getElementById("searchInput"),
+  excludeSearchInput: document.getElementById("excludeSearchInput"),
+  searchLogicSelect: document.getElementById("searchLogicSelect"),
   mobileFilterToggle: document.getElementById("mobileFilterToggle"),
   filtersSidebar: document.getElementById("filtersSidebar"),
   companyTreeFilter: document.getElementById("companyTreeFilter"),
@@ -364,6 +373,81 @@ async function locateDataRoot() {
   throw new Error("未找到可用数据目录，请确认 web/data 下存在 jobs.index.json 或 jobs.json");
 }
 
+function nextMode(current) {
+  if (current === "include") return "exclude";
+  if (current === "exclude") return "off";
+  return "include";
+}
+
+function markInputMode(input, mode) {
+  input.dataset.mode = mode;
+  input.checked = mode === "include";
+  input.indeterminate = mode === "exclude";
+  const label = input.closest("label");
+  if (label) {
+    label.classList.toggle("filter-mode-exclude", mode === "exclude");
+  }
+}
+
+function applyCheckboxModes(container) {
+  if (!container) return;
+  const boxes = container.querySelectorAll('input[type="checkbox"][data-mode]');
+  for (const box of boxes) {
+    markInputMode(box, box.dataset.mode || "off");
+  }
+}
+
+function tokenizeKeywords(text) {
+  return String(text || "")
+    .toLowerCase()
+    .split(/[\s,，;；、|]+/)
+    .map((x) => x.trim())
+    .filter(Boolean);
+}
+
+function searchInFields(job, tokens, fields, logic = "or") {
+  if (!tokens.length) return true;
+
+  const textMap = {};
+  for (const field of fields) {
+    const fieldName = field === "bonusPoints" ? "bonus_points" : field;
+    textMap[field] = String(job[fieldName] || "").toLowerCase();
+  }
+
+  if (logic === "or") {
+    return tokens.some((token) => {
+      return fields.some((field) => textMap[field].includes(token));
+    });
+  } else {
+    return tokens.every((token) => {
+      return fields.some((field) => textMap[field].includes(token));
+    });
+  }
+}
+
+function matchesAny(selectedValues, excludedValues, value) {
+  const normalized = String(value || "");
+  if (selectedValues.length && !selectedValues.includes(normalized)) return false;
+  if (excludedValues.includes(normalized)) return false;
+  return true;
+}
+
+function matchScoped(selectedKeys, excludedKeys, company, value) {
+  const key = `${company || ""}@@${value || ""}`;
+  if (selectedKeys.length && !selectedKeys.includes(key)) return false;
+  if (excludedKeys.includes(key)) return false;
+  return true;
+}
+
+function makeScopedKey(company, value) {
+  return `${String(company || "").trim()}@@${String(value || "").trim()}`;
+}
+
+function parseScopedKey(key) {
+  const [company, value] = String(key || "").split("@@");
+  return { company: company || "", value: value || "" };
+}
+
 function normalizeJob(job) {
   const workCities = Array.isArray(job.work_cities)
     ? job.work_cities
@@ -591,18 +675,23 @@ function renderCompanyTreeFilter(jobs) {
   updateCompanyTreeSummary(companyTree);
 
   const selectedCompanies = new Set(state.filters.company);
+  const excludedCompanies = new Set(state.filters.companyExclude);
   const selectedProjects = new Set(state.filters.project);
+  const excludedProjects = new Set(state.filters.projectExclude);
   const selectedCategories = new Set(state.filters.category);
+  const excludedCategories = new Set(state.filters.categoryExclude);
 
   els.companyTreeFilter.innerHTML = companyTree
     .map((row) => {
-      const companyChecked = selectedCompanies.has(row.company) ? "checked" : "";
+      const companyMode = selectedCompanies.has(row.company) ? "include" : excludedCompanies.has(row.company) ? "exclude" : "off";
+      const companyChecked = companyMode === "include" ? "checked" : "";
       const projectsHtml = row.projects.length
         ? row.projects
             .map((project) => {
               const scopedKey = makeScopedKey(row.company, project);
-              const checked = selectedProjects.has(scopedKey) ? "checked" : "";
-              return `<label class="company-option-item"><input type="checkbox" data-kind="project" data-company="${escapeHtml(
+              const mode = selectedProjects.has(scopedKey) ? "include" : excludedProjects.has(scopedKey) ? "exclude" : "off";
+              const checked = mode === "include" ? "checked" : "";
+              return `<label class="company-option-item"><input type="checkbox" data-kind="project" data-mode="${mode}" data-company="${escapeHtml(
                 row.company
               )}" value="${escapeHtml(scopedKey)}" ${checked} />${escapeHtml(project)}</label>`;
             })
@@ -613,8 +702,9 @@ function renderCompanyTreeFilter(jobs) {
         ? row.categories
             .map((category) => {
               const scopedKey = makeScopedKey(row.company, category);
-              const checked = selectedCategories.has(scopedKey) ? "checked" : "";
-              return `<label class="company-option-item"><input type="checkbox" data-kind="category" data-company="${escapeHtml(
+              const mode = selectedCategories.has(scopedKey) ? "include" : excludedCategories.has(scopedKey) ? "exclude" : "off";
+              const checked = mode === "include" ? "checked" : "";
+              return `<label class="company-option-item"><input type="checkbox" data-kind="category" data-mode="${mode}" data-company="${escapeHtml(
                 row.company
               )}" value="${escapeHtml(scopedKey)}" ${checked} />${escapeHtml(category)}</label>`;
             })
@@ -622,9 +712,9 @@ function renderCompanyTreeFilter(jobs) {
         : '<span class="sidebar-hint">暂无类别</span>';
 
       return `
-        <details class="company-node" ${companyChecked ? "open" : ""}>
+        <details class="company-node" ${companyMode !== "off" ? "open" : ""}>
           <summary>
-            <input class="company-company-check" type="checkbox" data-kind="company" value="${escapeHtml(row.company)}" ${companyChecked} />
+            <input class="company-company-check" type="checkbox" data-kind="company" data-mode="${companyMode}" value="${escapeHtml(row.company)}" ${companyChecked} />
             <span>${escapeHtml(row.company)}</span>
           </summary>
           <div class="company-node-body">
@@ -671,28 +761,34 @@ function extractCities(jobs) {
 function renderCityCheckboxes(container, cities) {
   if (!container) return;
   const selected = new Set(state.filters.city);
+  const excluded = new Set(state.filters.cityExclude);
   container.innerHTML = cities
     .map((city) => {
-      const checked = selected.has(city) ? "checked" : "";
-      return `<label class="city-option-item"><input type="checkbox" value="${escapeHtml(city)}" ${checked} />${escapeHtml(
+      const mode = selected.has(city) ? "include" : excluded.has(city) ? "exclude" : "off";
+      const checked = mode === "include" ? "checked" : "";
+      return `<label class="city-option-item"><input type="checkbox" data-kind="city" data-mode="${mode}" value="${escapeHtml(city)}" ${checked} />${escapeHtml(
         city
       )}</label>`;
     })
     .join("");
+  applyCheckboxModes(container);
 }
 
 function updateCityFilterSummary() {
   if (!els.cityFilterSummary) return;
   const selected = state.filters.city;
-  if (!selected.length) {
+  const excluded = state.filters.cityExclude;
+  if (!selected.length && !excluded.length) {
     els.cityFilterSummary.textContent = "全部城市";
     return;
   }
-  if (selected.length <= 2) {
+  if (selected.length && !excluded.length && selected.length <= 2) {
     els.cityFilterSummary.textContent = selected.join("、");
     return;
   }
-  els.cityFilterSummary.textContent = `已选 ${selected.length} 个城市`;
+  const selectedText = selected.length ? `+${selected.length}` : "";
+  const excludedText = excluded.length ? `-${excluded.length}` : "";
+  els.cityFilterSummary.textContent = `城市 ${selectedText} ${excludedText}`.trim();
 }
 
 function syncCitySelectionByOptions(cities) {
@@ -739,25 +835,34 @@ function refreshFilterOptions() {
 }
 
 function applyFilters() {
-  const query = state.filters.query.trim().toLowerCase();
+  const includeTokens = tokenizeKeywords(state.filters.query);
+  const excludeTokens = tokenizeKeywords(state.filters.excludeQuery);
 
   const filtered = state.allJobs.filter((job) => {
-    if (!matchesAny(state.filters.company, job.company)) return false;
-    if (!matchScoped(state.filters.project, job.company, job.project)) return false;
-    if (!matchScoped(state.filters.category, job.company, job.job_category)) return false;
+    if (!matchesAny(state.filters.company, state.filters.companyExclude, job.company)) return false;
+    if (!matchScoped(state.filters.project, state.filters.projectExclude, job.company, job.project)) return false;
+    if (!matchScoped(state.filters.category, state.filters.categoryExclude, job.company, job.job_category)) return false;
 
-    if (state.filters.city.length) {
+    if (state.filters.city.length || state.filters.cityExclude.length) {
       const cities = new Set(Array.isArray(job.normalized_cities) ? job.normalized_cities : []);
-      const hasAny = state.filters.city.some((city) => cities.has(city));
-      if (!hasAny) return false;
+      const includePass = !state.filters.city.length || state.filters.city.some((city) => cities.has(city));
+      const excludeHit = state.filters.cityExclude.some((city) => cities.has(city));
+      if (!includePass || excludeHit) return false;
     }
 
-    if (query && !job.search_blob_lower.includes(query)) return false;
+    if (includeTokens.length) {
+      if (!searchInFields(job, includeTokens, state.filters.searchFields, state.filters.searchLogic)) return false;
+    }
+
+    if (excludeTokens.length) {
+      const blob = String(job.search_blob_lower || "");
+      if (excludeTokens.some((token) => blob.includes(token))) return false;
+    }
     return true;
   });
 
   if (state.filters.sortBy === "relevance") {
-    filtered.sort((a, b) => scoreByRelevance(b, query) - scoreByRelevance(a, query));
+    filtered.sort((a, b) => scoreByRelevance(b, includeTokens) - scoreByRelevance(a, includeTokens));
   } else {
     filtered.sort((a, b) => parseTimeOrZero(b.publish_time) - parseTimeOrZero(a.publish_time));
   }
@@ -823,52 +928,46 @@ function bindEvents() {
   }
 
   if (els.companyTreeFilter) {
-    els.companyTreeFilter.addEventListener("change", (event) => {
+    els.companyTreeFilter.addEventListener("click", (event) => {
       const target = event.target;
       if (!(target instanceof HTMLInputElement) || target.type !== "checkbox") return;
+      event.preventDefault();
 
       const kind = target.dataset.kind;
+      if (!kind) return;
+      const excludeKey = `${kind}Exclude`;
+      const value = target.value;
       const company = target.dataset.company || "";
 
-      if (kind === "company") {
-        const selectedCompanies = new Set(state.filters.company);
-        if (target.checked) {
-          selectedCompanies.add(target.value);
-        } else {
-          selectedCompanies.delete(target.value);
-          state.filters.project = state.filters.project.filter((key) => parseScopedKey(key).company !== target.value);
-          state.filters.category = state.filters.category.filter((key) => parseScopedKey(key).company !== target.value);
-        }
-        state.filters.company = [...selectedCompanies];
+      const currentMode = target.dataset.mode || "off";
+      const next = nextMode(currentMode);
+      markInputMode(target, next);
+
+      const includeSet = new Set(state.filters[kind] || []);
+      const excludeSet = new Set(state.filters[excludeKey] || []);
+      includeSet.delete(value);
+      excludeSet.delete(value);
+      if (next === "include") includeSet.add(value);
+      if (next === "exclude") excludeSet.add(value);
+      state.filters[kind] = [...includeSet];
+      state.filters[excludeKey] = [...excludeSet];
+
+      if (kind === "company" && next !== "include") {
+        state.filters.project = state.filters.project.filter((key) => parseScopedKey(key).company !== value);
+        state.filters.projectExclude = state.filters.projectExclude.filter((key) => parseScopedKey(key).company !== value);
+        state.filters.category = state.filters.category.filter((key) => parseScopedKey(key).company !== value);
+        state.filters.categoryExclude = state.filters.categoryExclude.filter((key) => parseScopedKey(key).company !== value);
       }
 
-      if (kind === "project") {
-        const selectedProjects = new Set(state.filters.project);
-        if (target.checked) {
-          selectedProjects.add(target.value);
-          if (company && !state.filters.company.includes(company)) {
-            state.filters.company = [...state.filters.company, company];
-          }
-        } else {
-          selectedProjects.delete(target.value);
+      if ((kind === "project" || kind === "category") && next === "include" && company) {
+        state.filters.companyExclude = state.filters.companyExclude.filter((item) => item !== company);
+        if (!state.filters.company.includes(company)) {
+          state.filters.company = [...state.filters.company, company];
         }
-        state.filters.project = [...selectedProjects];
-      }
-
-      if (kind === "category") {
-        const selectedCategories = new Set(state.filters.category);
-        if (target.checked) {
-          selectedCategories.add(target.value);
-          if (company && !state.filters.company.includes(company)) {
-            state.filters.company = [...state.filters.company, company];
-          }
-        } else {
-          selectedCategories.delete(target.value);
-        }
-        state.filters.category = [...selectedCategories];
       }
 
       state.filters.city = [];
+      state.filters.cityExclude = [];
       refreshFilterOptions();
       applyFilters();
     });
@@ -878,20 +977,28 @@ function bindEvents() {
     const onCitySelectionChange = (event) => {
       const target = event.target;
       if (!(target instanceof HTMLInputElement) || target.type !== "checkbox") return;
+      event.preventDefault();
+
       const city = target.value;
+      const currentMode = target.dataset.mode || "off";
+      const next = nextMode(currentMode);
+      markInputMode(target, next);
+
       const selected = new Set(state.filters.city);
-      if (target.checked) {
-        selected.add(city);
-      } else {
-        selected.delete(city);
-      }
+      const excluded = new Set(state.filters.cityExclude);
+      selected.delete(city);
+      excluded.delete(city);
+      if (next === "include") selected.add(city);
+      if (next === "exclude") excluded.add(city);
+
       state.filters.city = [...selected];
+      state.filters.cityExclude = [...excluded];
       updateCityFilterSummary();
       applyFilters();
     };
 
-    els.cityPrimaryOptions.addEventListener("change", onCitySelectionChange);
-    els.cityOtherOptions.addEventListener("change", onCitySelectionChange);
+    els.cityPrimaryOptions.addEventListener("click", onCitySelectionChange);
+    els.cityOtherOptions.addEventListener("click", onCitySelectionChange);
 
     els.cityFilter.addEventListener("toggle", () => {
       const opened = els.cityFilter.hasAttribute("open");
@@ -910,6 +1017,36 @@ function bindEvents() {
     });
   }
 
+  if (els.excludeSearchInput) {
+    const debouncedExcludeSearch = debounce(() => {
+      state.filters.excludeQuery = els.excludeSearchInput.value || "";
+      applyFilters();
+    }, 220);
+    els.excludeSearchInput.addEventListener("input", debouncedExcludeSearch);
+  }
+
+  if (els.searchLogicSelect) {
+    els.searchLogicSelect.addEventListener("change", (event) => {
+      state.filters.searchLogic = event.target.value || "or";
+      applyFilters();
+    });
+  }
+
+  const searchFieldCheckboxes = document.querySelectorAll('input[type="checkbox"][data-field]');
+  searchFieldCheckboxes.forEach((checkbox) => {
+    checkbox.addEventListener("change", (event) => {
+      const field = event.target.dataset.field;
+      if (event.target.checked) {
+        if (!state.filters.searchFields.includes(field)) {
+          state.filters.searchFields.push(field);
+        }
+      } else {
+        state.filters.searchFields = state.filters.searchFields.filter((f) => f !== field);
+      }
+      applyFilters();
+    });
+  });
+
   els.sortBy.addEventListener("change", (event) => {
     state.filters.sortBy = event.target.value;
     applyFilters();
@@ -919,13 +1056,30 @@ function bindEvents() {
     state.filters = {
       ...state.filters,
       company: [],
+      companyExclude: [],
       project: [],
+      projectExclude: [],
       category: [],
+      categoryExclude: [],
       city: [],
+      cityExclude: [],
       query: "",
+      excludeQuery: "",
+      searchFields: ["title", "responsibilities", "requirements", "bonusPoints"],
+      searchLogic: "or",
       sortBy: "publish_time",
     };
     els.searchInput.value = "";
+    if (els.excludeSearchInput) {
+      els.excludeSearchInput.value = "";
+    }
+    if (els.searchLogicSelect) {
+      els.searchLogicSelect.value = "or";
+    }
+    const searchFieldCheckboxes = document.querySelectorAll('input[type="checkbox"][data-field]');
+    searchFieldCheckboxes.forEach((checkbox) => {
+      checkbox.checked = true;
+    });
     els.sortBy.value = "publish_time";
     refreshFilterOptions();
     applyFilters();

@@ -275,6 +275,79 @@ h1 {
   font-size: 14px;
 }
 
+.search-fields-selector {
+  margin-bottom: 12px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 8px;
+  border: 1px solid var(--line);
+}
+
+.search-field-label {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--ink);
+  margin-right: 8px;
+}
+
+.search-field-checkboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.search-field-checkboxes label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.search-field-checkboxes input[type="checkbox"] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}
+
+.search-logic-selector {
+  margin-bottom: 12px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 8px;
+  border: 1px solid var(--line);
+}
+
+.search-logic-label {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--ink);
+  margin-right: 8px;
+}
+
+.search-logic-selector select {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  font-size: 13px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.exclude-search-input {
+  border-color: #f2c46f !important;
+  background: #fff9ed;
+}
+
+.search-hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+
 .sidebar-actions select,
 .sidebar-actions button {
   height: 40px;
@@ -310,6 +383,12 @@ h1 {
 
 .company-option-item input {
   margin: 0;
+}
+
+.city-option-item.filter-mode-exclude,
+.company-option-item.filter-mode-exclude {
+  color: #9a4a00;
+  font-weight: 600;
 }
 
 .multi-filter-summary {

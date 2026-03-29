@@ -83,7 +83,30 @@
           <section class="jobs-main-panel">
             <section class="toolbar">
               <div class="search-wrap">
-                <input id="searchInput" type="search" placeholder="搜索岗位标题 / 职责 / 要求 / 加分项" />
+                <div class="search-fields-selector">
+                  <label class="search-field-label">搜索范围：</label>
+                  <div class="search-field-checkboxes">
+                    <label><input type="checkbox" data-field="title" checked />岗位标题</label>
+                    <label><input type="checkbox" data-field="responsibilities" checked />岗位职责</label>
+                    <label><input type="checkbox" data-field="requirements" checked />岗位要求</label>
+                    <label><input type="checkbox" data-field="bonusPoints" checked />加分项</label>
+                  </div>
+                </div>
+                <div class="search-logic-selector">
+                  <label class="search-logic-label">关键词逻辑：</label>
+                  <select id="searchLogicSelect">
+                    <option value="or">或检索（包含任意关键词）</option>
+                    <option value="and">与检索（包含所有关键词）</option>
+                  </select>
+                </div>
+                <input id="searchInput" type="search" placeholder="搜索关键词，多个关键词用逗号分隔" />
+                <input
+                  id="excludeSearchInput"
+                  class="exclude-search-input"
+                  type="search"
+                  placeholder="不包含关键词（多个用逗号分隔）"
+                />
+                <p class="search-hint">提示：多关键词用逗号分隔；或检索时匹配任意关键词，与检索时需匹配全部关键词；筛选条件支持三态：包含(+) → 排除(-) → 取消。</p>
               </div>
               <div class="toolbar-footer">
                 <span class="source-note">数据来源：聚合校招站点，点击卡片可跳转原始岗位。</span>
