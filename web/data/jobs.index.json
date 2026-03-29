@@ -1,0 +1,343 @@
+{
+  "version": 1,
+  "generated_at": "2026-03-20T07:57:28Z",
+  "chunk_mode": "full",
+  "chunk_size": 120,
+  "total": 6556,
+  "files": {
+    "jobs": "jobs.json",
+    "chunks_dir": "chunks"
+  },
+  "chunks": [
+    {
+      "file": "jobs-0001.json",
+      "count": 120,
+      "start": 0,
+      "end": 119
+    },
+    {
+      "file": "jobs-0002.json",
+      "count": 120,
+      "start": 120,
+      "end": 239
+    },
+    {
+      "file": "jobs-0003.json",
+      "count": 120,
+      "start": 240,
+      "end": 359
+    },
+    {
+      "file": "jobs-0004.json",
+      "count": 120,
+      "start": 360,
+      "end": 479
+    },
+    {
+      "file": "jobs-0005.json",
+      "count": 120,
+      "start": 480,
+      "end": 599
+    },
+    {
+      "file": "jobs-0006.json",
+      "count": 120,
+      "start": 600,
+      "end": 719
+    },
+    {
+      "file": "jobs-0007.json",
+      "count": 120,
+      "start": 720,
+      "end": 839
+    },
+    {
+      "file": "jobs-0008.json",
+      "count": 120,
+      "start": 840,
+      "end": 959
+    },
+    {
+      "file": "jobs-0009.json",
+      "count": 120,
+      "start": 960,
+      "end": 1079
+    },
+    {
+      "file": "jobs-0010.json",
+      "count": 120,
+      "start": 1080,
+      "end": 1199
+    },
+    {
+      "file": "jobs-0011.json",
+      "count": 120,
+      "start": 1200,
+      "end": 1319
+    },
+    {
+      "file": "jobs-0012.json",
+      "count": 120,
+      "start": 1320,
+      "end": 1439
+    },
+    {
+      "file": "jobs-0013.json",
+      "count": 120,
+      "start": 1440,
+      "end": 1559
+    },
+    {
+      "file": "jobs-0014.json",
+      "count": 120,
+      "start": 1560,
+      "end": 1679
+    },
+    {
+      "file": "jobs-0015.json",
+      "count": 120,
+      "start": 1680,
+      "end": 1799
+    },
+    {
+      "file": "jobs-0016.json",
+      "count": 120,
+      "start": 1800,
+      "end": 1919
+    },
+    {
+      "file": "jobs-0017.json",
+      "count": 120,
+      "start": 1920,
+      "end": 2039
+    },
+    {
+      "file": "jobs-0018.json",
+      "count": 120,
+      "start": 2040,
+      "end": 2159
+    },
+    {
+      "file": "jobs-0019.json",
+      "count": 120,
+      "start": 2160,
+      "end": 2279
+    },
+    {
+      "file": "jobs-0020.json",
+      "count": 120,
+      "start": 2280,
+      "end": 2399
+    },
+    {
+      "file": "jobs-0021.json",
+      "count": 120,
+      "start": 2400,
+      "end": 2519
+    },
+    {
+      "file": "jobs-0022.json",
+      "count": 120,
+      "start": 2520,
+      "end": 2639
+    },
+    {
+      "file": "jobs-0023.json",
+      "count": 120,
+      "start": 2640,
+      "end": 2759
+    },
+    {
+      "file": "jobs-0024.json",
+      "count": 120,
+      "start": 2760,
+      "end": 2879
+    },
+    {
+      "file": "jobs-0025.json",
+      "count": 120,
+      "start": 2880,
+      "end": 2999
+    },
+    {
+      "file": "jobs-0026.json",
+      "count": 120,
+      "start": 3000,
+      "end": 3119
+    },
+    {
+      "file": "jobs-0027.json",
+      "count": 120,
+      "start": 3120,
+      "end": 3239
+    },
+    {
+      "file": "jobs-0028.json",
+      "count": 120,
+      "start": 3240,
+      "end": 3359
+    },
+    {
+      "file": "jobs-0029.json",
+      "count": 120,
+      "start": 3360,
+      "end": 3479
+    },
+    {
+      "file": "jobs-0030.json",
+      "count": 120,
+      "start": 3480,
+      "end": 3599
+    },
+    {
+      "file": "jobs-0031.json",
+      "count": 120,
+      "start": 3600,
+      "end": 3719
+    },
+    {
+      "file": "jobs-0032.json",
+      "count": 120,
+      "start": 3720,
+      "end": 3839
+    },
+    {
+      "file": "jobs-0033.json",
+      "count": 120,
+      "start": 3840,
+      "end": 3959
+    },
+    {
+      "file": "jobs-0034.json",
+      "count": 120,
+      "start": 3960,
+      "end": 4079
+    },
+    {
+      "file": "jobs-0035.json",
+      "count": 120,
+      "start": 4080,
+      "end": 4199
+    },
+    {
+      "file": "jobs-0036.json",
+      "count": 120,
+      "start": 4200,
+      "end": 4319
+    },
+    {
+      "file": "jobs-0037.json",
+      "count": 120,
+      "start": 4320,
+      "end": 4439
+    },
+    {
+      "file": "jobs-0038.json",
+      "count": 120,
+      "start": 4440,
+      "end": 4559
+    },
+    {
+      "file": "jobs-0039.json",
+      "count": 120,
+      "start": 4560,
+      "end": 4679
+    },
+    {
+      "file": "jobs-0040.json",
+      "count": 120,
+      "start": 4680,
+      "end": 4799
+    },
+    {
+      "file": "jobs-0041.json",
+      "count": 120,
+      "start": 4800,
+      "end": 4919
+    },
+    {
+      "file": "jobs-0042.json",
+      "count": 120,
+      "start": 4920,
+      "end": 5039
+    },
+    {
+      "file": "jobs-0043.json",
+      "count": 120,
+      "start": 5040,
+      "end": 5159
+    },
+    {
+      "file": "jobs-0044.json",
+      "count": 120,
+      "start": 5160,
+      "end": 5279
+    },
+    {
+      "file": "jobs-0045.json",
+      "count": 120,
+      "start": 5280,
+      "end": 5399
+    },
+    {
+      "file": "jobs-0046.json",
+      "count": 120,
+      "start": 5400,
+      "end": 5519
+    },
+    {
+      "file": "jobs-0047.json",
+      "count": 120,
+      "start": 5520,
+      "end": 5639
+    },
+    {
+      "file": "jobs-0048.json",
+      "count": 120,
+      "start": 5640,
+      "end": 5759
+    },
+    {
+      "file": "jobs-0049.json",
+      "count": 120,
+      "start": 5760,
+      "end": 5879
+    },
+    {
+      "file": "jobs-0050.json",
+      "count": 120,
+      "start": 5880,
+      "end": 5999
+    },
+    {
+      "file": "jobs-0051.json",
+      "count": 120,
+      "start": 6000,
+      "end": 6119
+    },
+    {
+      "file": "jobs-0052.json",
+      "count": 120,
+      "start": 6120,
+      "end": 6239
+    },
+    {
+      "file": "jobs-0053.json",
+      "count": 120,
+      "start": 6240,
+      "end": 6359
+    },
+    {
+      "file": "jobs-0054.json",
+      "count": 120,
+      "start": 6360,
+      "end": 6479
+    },
+    {
+      "file": "jobs-0055.json",
+      "count": 76,
+      "start": 6480,
+      "end": 6555
+    }
+  ]
+}

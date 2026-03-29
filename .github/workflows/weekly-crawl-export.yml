@@ -1,0 +1,168 @@
+name: Weekly Crawl And Export
+
+on:
+  schedule:
+    # Every Wednesday 03:00 UTC
+    - cron: "0 3 * * 3"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: weekly-crawl-export
+  cancel-in-progress: false
+
+jobs:
+  crawl-and-export:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Crawlers And Export
+        shell: bash
+        run: |
+          set +e
+
+          ts="$(date -u +'%Y%m%dT%H%M%SZ')"
+          log_dir="logs/ci/${ts}"
+          mkdir -p "${log_dir}"
+
+          spiders=(tencent bilibili netease mihoyo antgroup meituan)
+          failed=0
+
+          {
+            echo "## Weekly Crawl And Export"
+            echo ""
+            echo "- UTC start: $(date -u '+%Y-%m-%d %H:%M:%S')"
+            echo "- Log dir: ${log_dir}"
+            echo ""
+            echo "### Spider Exit Codes"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          : > "${log_dir}/status.env"
+
+          for spider in "${spiders[@]}"; do
+            echo "Running spider: ${spider}"
+            (
+              cd scrapy_crawlers
+              python -m scrapy crawl "${spider}"
+            ) > "${log_dir}/${spider}.log" 2>&1
+
+            code=$?
+            echo "${spider}=${code}" >> "${log_dir}/status.env"
+            echo "- ${spider}: ${code}" >> "$GITHUB_STEP_SUMMARY"
+
+            if [ ${code} -ne 0 ]; then
+              failed=1
+            fi
+          done
+
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Export Exit Code" >> "$GITHUB_STEP_SUMMARY"
+
+          python src/export_frontend_jobs.py \
+            --input data/jobs.jsonl \
+            --output-root web \
+            > "${log_dir}/export_frontend.log" 2>&1
+          export_code=$?
+
+          echo "export_frontend=${export_code}" >> "${log_dir}/status.env"
+          echo "- export_frontend: ${export_code}" >> "$GITHUB_STEP_SUMMARY"
+
+          if [ ${export_code} -ne 0 ]; then
+            failed=1
+          fi
+
+          python - << 'PY' > "${log_dir}/data_summary.txt"
+          import json
+          from pathlib import Path
+
+          jobs_path = Path("data/jobs.jsonl")
+          total = 0
+          by_company = {}
+
+          if jobs_path.exists():
+            with jobs_path.open("r", encoding="utf-8") as f:
+              for line in f:
+                line = line.strip()
+                if not line:
+                  continue
+                try:
+                  obj = json.loads(line)
+                except Exception:
+                  continue
+                total += 1
+                company = (obj.get("company") or "UNKNOWN").strip() or "UNKNOWN"
+                by_company[company] = by_company.get(company, 0) + 1
+
+          print(f"total_jobs={total}")
+          print("top_companies=")
+          for k, v in sorted(by_company.items(), key=lambda x: x[1], reverse=True)[:15]:
+            print(f"{k}\t{v}")
+          PY
+
+          {
+            echo ""
+            echo "### Data Summary"
+            echo '```text'
+            cat "${log_dir}/data_summary.txt"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          echo "LOG_DIR=${log_dir}" >> "$GITHUB_ENV"
+          echo "FAILED=${failed}" >> "$GITHUB_ENV"
+
+          # Do not fail this step early; we need artifact upload in all cases.
+          exit 0
+
+      - name: Upload Run Logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: weekly-crawl-logs-${{ github.run_id }}
+          path: ${{ env.LOG_DIR }}
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Commit Updated Data
+        if: env.FAILED == '0'
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add data/jobs.csv data/jobs.jsonl
+          git add web/data/jobs.json web/data/jobs.index.json web/data/chunks
+
+          if git diff --cached --quiet; then
+            echo "No data changes to commit."
+            echo "- commit: no changes" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          commit_msg="chore(data): weekly crawl and frontend export"
+          git commit -m "${commit_msg}"
+          git push
+
+          echo "- commit: pushed updated data" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail Workflow If Any Task Failed
+        if: always() && env.FAILED == '1'
+        run: |
+          echo "One or more spiders/export steps failed. Check uploaded logs artifact."
+          exit 1

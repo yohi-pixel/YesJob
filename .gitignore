@@ -1,0 +1,53 @@
+# Python cache and virtual environments
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+.venv/
+venv/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+
+# Runtime logs
+logs/*.log
+
+# Local generated databases and artifacts
+data/lancedb/
+data/lancedb_meta.json
+
+# Optional local analysis exports
+data/analysis/
+
+# Scrapy runtime cache
+.scrapy/
+
+# AI功能先禁用
+web/assets/ai-agent
+
+# Node modules and build artifacts
+resume-manager-demo/node_modules/
+resume-manager-demo/.vite/
+resume-manager-demo/dist/
+resume-manager-demo/build/
+
+# Environment variables and secrets
+resume-manager-demo/backend/.env
+*.env.local
+*.env.production
+*.env.development
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Cache and temporary files
+.cache/
+*.log
+.nyc_output/
