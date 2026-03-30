@@ -607,15 +607,6 @@ function extractOptions(jobs, key, fallback = "") {
   return [...set].sort((a, b) => a.localeCompare(b, "zh-CN"));
 }
 
-function makeScopedKey(company, value) {
-  return `${String(company || "").trim()}@@${String(value || "").trim()}`;
-}
-
-function parseScopedKey(key) {
-  const [company, value] = String(key || "").split("@@");
-  return { company: company || "", value: value || "" };
-}
-
 function buildCompanyTreeData(jobs) {
   const companyMap = new Map();
   for (const job of jobs) {
@@ -731,16 +722,6 @@ function renderCompanyTreeFilter(jobs) {
       `;
     })
     .join("");
-}
-
-function matchesAny(selectedValues, value) {
-  if (!selectedValues.length) return true;
-  return selectedValues.includes(String(value || ""));
-}
-
-function matchScoped(selectedKeys, company, value) {
-  if (!selectedKeys.length) return true;
-  return selectedKeys.includes(makeScopedKey(company, value));
 }
 
 function extractCities(jobs) {
