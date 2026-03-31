@@ -19,6 +19,14 @@
 3. 前端展示层
 - 职责：招聘信息卡片化展示、联动筛选、关键词搜索、渐进加载。
 
+4. 简历管理模块
+- 职责：简历上传解析、在线编辑、模块拼接、AI 优化、多模板导出、投递管理。
+- 目录：
+  - 后端：`src/ai_agent/resume/`（parser、splitter、extractor、optimizer、router）
+  - 前端：`resume-manager/`（Vue3 + TypeScript + Tailwind CSS + Pinia）
+- 存储：全部使用浏览器 localStorage，后端仅提供解析和 AI 优化 API。
+- 详见 `docs/RESUME_MODULE_PRD.md`。
+
 
 ## 2. 数据爬取模块实现总结
 
@@ -237,7 +245,41 @@
 
 ## 9. 需求模板与 PR 检查清单
 
-### 9.1 需求模板（可复制）
+## 10. 简历管理模块规范
+
+### 10.1 架构概述
+
+简历管理采用前后端分离架构：
+- **后端**：FastAPI（`src/ai_agent/resume/`），提供 PDF/DOCX 解析和 DeepSeek AI 优化两个 API
+- **前端**：Vue3 SPA（`resume-manager/`），所有数据存储在 localStorage
+- **集成路径**：前端构建产物可放入 `web/resume/`，后端已注册到现有 FastAPI app
+
+### 10.2 后端 API
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/api/resume/parse` | 上传 PDF/DOCX，提取经历与自我描述 |
+| POST | `/api/resume/optimize` | DeepSeek 按标签 AI 重写经历/描述 |
+
+### 10.3 前端页面
+
+| 路由 | 页面 | 说明 |
+|------|------|------|
+| `/` | 简历列表 | 创建/上传/复制/删除简历 |
+| `/resume/edit/:id` | 简历编辑 | 三大模块表单 + 模块拼接 + AI 优化 |
+| `/resume/export/:id` | 导出预览 | 手绘风/简洁表格模板 PDF 导出 |
+| `/experience-library` | 项目经历库 | 跨简历深拷贝经历 |
+| `/delivery` | 投递管理 | 投递记录 CRUD |
+
+### 10.4 设计风格
+
+校园手绘风：米白纸张背景、彩色便签卡片、手绘边框、ZCOOL 手写字体。
+
+### 10.5 维护规则
+
+- 不破坏现有爬虫/分析/AI Agent 代码
+- localStorage 键名前缀：`resume-manager-resumes`、`resume-manager-deliveries`
+- 后端依赖：pdfplumber、python-docx、python-multipart（已加入 requirements.txt）
 
 提交新需求时，建议直接使用下面模板：
 

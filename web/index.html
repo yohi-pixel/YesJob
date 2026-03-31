@@ -19,6 +19,7 @@
           <div class="top-views" role="tablist" aria-label="页面视图切换">
             <button id="viewJobsTab" type="button" class="view-tab is-active" role="tab" aria-selected="true">岗位列表</button>
             <button id="viewCalendarTab" type="button" class="view-tab" role="tab" aria-selected="false">华工3月宣讲行程</button>
+            <a class="view-tab view-link" href="resume-manager/">简历管理</a>
           </div>
         </div>
         <div class="hero-metrics">
@@ -49,7 +50,28 @@
             ▶
           </button>
 
+          <button
+            id="desktopFilterToggle"
+            class="desktop-filter-toggle"
+            type="button"
+            aria-controls="filtersSidebar"
+            aria-expanded="false"
+          >
+            展开筛选
+          </button>
+
           <aside id="filtersSidebar" class="filters-sidebar">
+            <section class="sidebar-alert" aria-live="polite">
+              <strong class="sidebar-alert-title">筛选操作提醒</strong>
+              <p class="sidebar-alert-text">点筛选项 1 次=包含，2 次=排除，3 次=取消。看不到侧栏时，请点左侧边缘“筛选”标签展开。</p>
+            </section>
+
+            <section class="sidebar-block filter-op-tips" aria-label="筛选操作说明">
+              <h3>三态筛选说明</h3>
+              <p class="sidebar-hint">点击同一筛选项会按顺序切换：包含(+) → 排除(-) → 取消。</p>
+              <p class="sidebar-hint">每项后会显示状态标签：包含 / 排除 / 未启用，避免和取消状态混淆。</p>
+            </section>
+
             <section class="sidebar-block">
               <h3>筛选目录</h3>
               <p id="companyTreeSummary" class="sidebar-hint">按公司展开项目与类别（均支持多选）。</p>

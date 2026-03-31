@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from ai_agent.api.routes import router as ai_router
+from ai_agent.resume.router import router as resume_router
 
 
 app = FastAPI(title="Job Info Collector AI Agent", version="0.1.0-mvp")
@@ -23,3 +24,4 @@ def root() -> dict[str, str]:
 
 
 app.include_router(ai_router)
+app.include_router(resume_router)

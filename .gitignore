@@ -35,8 +35,13 @@ resume-manager-demo/node_modules/
 resume-manager-demo/.vite/
 resume-manager-demo/dist/
 resume-manager-demo/build/
+resume-manager/node_modules/
+resume-manager/dist/
+web/resume-manager/
 
 # Environment variables and secrets
+.env
+.env.*
 resume-manager-demo/backend/.env
 *.env.local
 *.env.production

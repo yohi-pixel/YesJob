@@ -65,6 +65,7 @@ const els = {
   excludeSearchInput: document.getElementById("excludeSearchInput"),
   searchLogicSelect: document.getElementById("searchLogicSelect"),
   mobileFilterToggle: document.getElementById("mobileFilterToggle"),
+  desktopFilterToggle: document.getElementById("desktopFilterToggle"),
   filtersSidebar: document.getElementById("filtersSidebar"),
   companyTreeFilter: document.getElementById("companyTreeFilter"),
   companyTreeSummary: document.getElementById("companyTreeSummary"),
@@ -383,8 +384,19 @@ function markInputMode(input, mode) {
   input.dataset.mode = mode;
   input.checked = mode === "include";
   input.indeterminate = mode === "exclude";
+  if (mode === "include") {
+    input.title = "当前：包含筛选（下次点击切到排除）";
+  } else if (mode === "exclude") {
+    input.title = "当前：排除筛选（下次点击取消）";
+  } else {
+    input.title = "当前：未启用（下次点击切到包含）";
+  }
   const label = input.closest("label");
   if (label) {
+    label.classList.remove("filter-mode-include", "filter-mode-exclude", "filter-mode-off");
+    if (mode === "include") label.classList.add("filter-mode-include");
+    if (mode === "exclude") label.classList.add("filter-mode-exclude");
+    if (mode === "off") label.classList.add("filter-mode-off");
     label.classList.toggle("filter-mode-exclude", mode === "exclude");
   }
 }
@@ -705,8 +717,12 @@ function renderCompanyTreeFilter(jobs) {
       return `
         <details class="company-node" ${companyMode !== "off" ? "open" : ""}>
           <summary>
-            <input class="company-company-check" type="checkbox" data-kind="company" data-mode="${companyMode}" value="${escapeHtml(row.company)}" ${companyChecked} />
-            <span>${escapeHtml(row.company)}</span>
+            <label class="company-option-item company-root-option">
+              <input class="company-company-check" type="checkbox" data-kind="company" data-mode="${companyMode}" value="${escapeHtml(
+                row.company
+              )}" ${companyChecked} />
+              <span>${escapeHtml(row.company)}</span>
+            </label>
           </summary>
           <div class="company-node-body">
             <section class="company-subgroup">
@@ -722,6 +738,8 @@ function renderCompanyTreeFilter(jobs) {
       `;
     })
     .join("");
+
+  applyCheckboxModes(els.companyTreeFilter);
 }
 
 function extractCities(jobs) {
@@ -877,33 +895,61 @@ function bindEvents() {
     debouncedSearch(event.target.value || "");
   });
 
-  if (els.mobileFilterToggle && els.filtersSidebar) {
-    const syncMobileToggleState = () => {
-      const isOpen = els.filtersSidebar.classList.contains("is-open");
-      els.mobileFilterToggle.setAttribute("aria-expanded", String(isOpen));
-      els.mobileFilterToggle.textContent = isOpen ? "◀" : "▶";
+  if (els.filtersSidebar) {
+    const setSidebarOpen = (open) => {
+      if (open) {
+        els.filtersSidebar.classList.add("is-open");
+      } else {
+        els.filtersSidebar.classList.remove("is-open");
+      }
+      syncSidebarToggleState();
     };
 
-    els.mobileFilterToggle.addEventListener("click", () => {
-      els.filtersSidebar.classList.toggle("is-open");
-      syncMobileToggleState();
-    });
+    const syncSidebarToggleState = () => {
+      const isOpen = els.filtersSidebar.classList.contains("is-open");
+      if (els.mobileFilterToggle) {
+        els.mobileFilterToggle.setAttribute("aria-expanded", String(isOpen));
+        els.mobileFilterToggle.textContent = isOpen ? "◀" : "▶";
+      }
+      if (els.desktopFilterToggle) {
+        els.desktopFilterToggle.setAttribute("aria-expanded", String(isOpen));
+        els.desktopFilterToggle.textContent = isOpen ? "收起筛选" : "展开筛选";
+      }
+    };
+
+    syncSidebarToggleState();
+
+    if (els.mobileFilterToggle) {
+      els.mobileFilterToggle.addEventListener("click", (event) => {
+        event.preventDefault();
+        const isOpen = els.filtersSidebar.classList.contains("is-open");
+        setSidebarOpen(!isOpen);
+      });
+    }
+
+    if (els.desktopFilterToggle) {
+      els.desktopFilterToggle.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const isOpen = els.filtersSidebar.classList.contains("is-open");
+        setSidebarOpen(!isOpen);
+      });
+    }
 
     document.addEventListener("click", (event) => {
       if (window.matchMedia("(max-width: 900px)").matches === false) return;
+      if (!els.mobileFilterToggle) return;
       if (!(event.target instanceof Node)) return;
       const clickedToggle = els.mobileFilterToggle.contains(event.target);
       const clickedSidebar = els.filtersSidebar.contains(event.target);
       if (!clickedToggle && !clickedSidebar) {
-        els.filtersSidebar.classList.remove("is-open");
-        syncMobileToggleState();
+        setSidebarOpen(false);
       }
     });
 
     window.addEventListener("resize", () => {
       if (window.matchMedia("(max-width: 900px)").matches === false) {
-        els.filtersSidebar.classList.remove("is-open");
-        syncMobileToggleState();
+        setSidebarOpen(false);
       }
     });
   }
